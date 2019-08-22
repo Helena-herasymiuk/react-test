@@ -1,114 +1,194 @@
 import React from 'react'
+import Input from "./Input";
 
 class SignUp extends React.Component {
   constructor() {
     super();
     this.state = {
       submited: false,
+      name: '',
+      phone: '',
+      email: '',
+      country: '',
+      password: '',
+      passConfirm: '',
+      code: '',
+      id: ''
     };
 
+    this.id = 0;
+    this.codes = [];
     this.password = '';
+    this.submit = this.submit.bind(this)
   }
 
-  enteredText(event) {
-    const elem  = event.target;
-    if(elem.value){
-      elem.classList.add('entered');
+  enteredText = (event) => {
+    const input  = event.target;
+    const id = input.id;
+    if(input.value){
+      input.classList.add('entered');
     } else {
-      elem.classList.remove('entered');
+      input.classList.remove('entered');
     }
-    console.log(event)
+    let value = input.value;
+    if(id === 'country'){
+      value = this.codes
+        .find((elem) => elem.name === value)
+        .country_code;
+      console.log(value)
+    }
+
+    let timer = null;
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      this.setState({
+        [id]: value
+      })
+    }, 1000);
 
   }
 
-  enterPass(event) {
-    console.log(event)
+  enterPass = (event) => {
     this.password = event.target.value;
     this.enteredText(event);
   }
 
-
-  checkPass(event) {
-    event.persist();
-    const input  = event.target.value;
-    // const enterdText = () => {
+  checkPass = (event) => {
+    let timer = null;
+    clearTimeout(timer);
+    const input  = event.target;
+    timer = setTimeout(() => {
       if(this.password === input.value){
-        return  input.validity.valid = true;
-      } else return  input.validity.valid = false;
-    // }
-    // debounce(enterdText(),500);
+        input.classList.remove("invalid")
+      } else {
+        input.classList.add("invalid")
+      }
+    }, 600);
     this.enteredText(event);
+  }
+
+  async submit(event) {
+    event.preventDefault();
+    const {
+      name,
+      phone,
+      code,
+      country,
+      email,
+      password,
+      passConfirm
+    } = this.state;
+    this.id += 1;
+    let user = {
+      id: this.id,
+      name,
+      phone,
+      dialCode: code,
+      country,
+      email,
+      password,
+      passwordConfirmation: passConfirm
+    };
+    let response = await fetch('http://localhost:3002/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json;charset=utf-8'
+      },
+      body: JSON.stringify(user)
+    });
+    let result = await response.json();
+  }
+
+  async componentDidMount() {
+    let response = await fetch('http://localhost:3002/countries');
+    let result = await response.json();
+    this.codes = result.map(elem => {
+      return {
+        code: elem.dial_code,
+        name: elem.name,
+        country_code: elem.country_code
+      }
+    })
   }
 
   render() {
     return (
       <div className='SignUp'>
         <h1>Sign Up</h1>
-        <form className='SignUp__form'>
+        <form className='SignUp__form'
+              onSubmit={this.submit}>
           <div className='input name'>
-            <input type="text" id="name"
-                   onInput={this.enteredText}
-                   required/>
-            <label className='label' htmlFor="name">
-              Name
-            </label>
+           <Input type='name'
+                  name="Name"
+                  minLength="3"
+                  maxLength="30"
+                  required={true}
+                  onInput={this.enteredText}
+           />
           </div>
           <div className='input phone'>
-            <input type="tel" id="code"
-                   minLength="2"
-                   maxLength="4"
-                   onChange={this.enteredText}
-                   pattern="^[0-9]+$"/>
-            <label className='label' htmlFor="code">
-              Code
-            </label>
+            <Input type='tel'
+                   name="Code"
+                   id="code"
+                   required={false}
+                   pattern="^\+?\d{1,4}$"
+                   onInput={this.enteredText}
+            />
             <select className='select code' >
               <option>380</option>
             </select>
-            <input type="tel" id="phone" pattern="^[0-9]+$"
+            <Input type='tel'
+                   name="Phone"
+                   id="phone"
+                   required={false}
+                   pattern="^[0-9]+$"
                    minLength="9" maxLength="9"
-                   onChange={this.enteredText}/>
-            <label className='label' id="phoneLabel"
-                   htmlFor="phone">
-              Phone number
-            </label>
+                   onInput={this.enteredText}
+            />
           </div>
           <div className='input email'>
-            <input type="email" id="email" required
-                   onChange={this.enteredText}/>
-            <label className='label' htmlFor="email">
-              Email address
-            </label>
+            <Input type='email'
+                   name="Email address"
+                   required={true}
+                   onInput={this.enteredText}
+            />
           </div>
           <div className='input country'>
-            <input type="text" id="country"
-                   onChange={this.enteredText}/>
-            <label className='label' htmlFor="country">
-              Select country
-            </label>
-            <select className='select country'>
+            <Input type='text'
+                   id="country"
+                   name="Select country"
+                   required={false}
+                   onInput={this.enteredText}
+            />
+            <select className='select country' >
               <option>Ukraine</option>
             </select>
           </div>
           <div className='input pass'>
-            <input type="password" id="pass" minLength="6"
-                   onChange={this.enteredText}/>
-            <label className='label' htmlFor="pass">
-              Password
-            </label>
+            <Input type='password'
+                   name="Password"
+                   required={true}
+                   pattern='^[^s]+$'
+                   minLength="5"
+                   maxLength="128"
+                   onInput={this.enterPass}
+            />
           </div>
           <div className='input pass'>
-            <input type="password" id="passConfirm"
-                   minLength="6"
-                   onChange={debounce(this.checkPass,500)}/>
-            <label className='label' htmlFor="passConfirm">
-              Password confirmation
-            </label>
+            <Input type='password'
+                   id="passConfirm"
+                   name="Password confirmation"
+                   required={true}
+                   // minLength="8"
+                   onInput={this.checkPass}
+            />
           </div>
           <div className='check'>
-            <input type="checkbox" id="checkbox" required />
-            <label htmlFor="checkbox"></label>
-            <p className='label check'>
+            <Input type='checkbox'
+                   id="checkbox"
+                   required={true}
+            />
+            <p className='label check' htmlFor='checkbox'>
               Yes, I'd like to recieve the very occasional email
               with information on new services and discounts
             </p>
@@ -125,13 +205,3 @@ class SignUp extends React.Component {
 };
 
 export default SignUp;
-
-function debounce(f, delay) {
-  let timer = null;
-  return function(...args) {
-    clearTimeout(timer);
-    timer = setTimeout(() => {
-      f.call(this, ...args);
-    }, delay);
-  };
-}
