@@ -5,7 +5,7 @@ class SignUp extends React.Component {
   constructor() {
     super();
     this.state = {
-      submited: false,
+      submitted: false,
       name: '',
       phone: '',
       email: '',
@@ -13,11 +13,13 @@ class SignUp extends React.Component {
       password: '',
       passConfirm: '',
       code: '',
-      id: ''
+      id: '',
+      codes: [],
+      countries: []
     };
 
     this.id = 0;
-    this.codes = [];
+    this.countries = [];
     this.password = '';
     this.submit = this.submit.bind(this)
   }
@@ -30,19 +32,12 @@ class SignUp extends React.Component {
     } else {
       input.classList.remove('entered');
     }
-    let value = input.value;
-    if(id === 'country'){
-      value = this.codes
-        .find((elem) => elem.name === value)
-        .country_code;
-      console.log(value)
-    }
 
     let timer = null;
     clearTimeout(timer);
     timer = setTimeout(() => {
       this.setState({
-        [id]: value
+        [id]: input.value
       })
     }, 1000);
 
@@ -78,13 +73,17 @@ class SignUp extends React.Component {
       password,
       passConfirm
     } = this.state;
+    let country_c = this.codes
+        .find((elem) => elem.name === country)
+        .country_code;
+
     this.id += 1;
     let user = {
       id: this.id,
       name,
       phone,
       dialCode: code,
-      country,
+      country: country_c,
       email,
       password,
       passwordConfirmation: passConfirm
@@ -96,18 +95,84 @@ class SignUp extends React.Component {
       },
       body: JSON.stringify(user)
     });
+
     let result = await response.json();
+    console.log(result);
+
+    this.setState({
+      submitted: true,
+      name: '',
+      phone: '',
+      email: '',
+      country: '',
+      password: '',
+      passConfirm: '',
+      code: '',
+    })
+
+    let inputs = document.querySelectorAll(".input > input");
+    [...inputs].forEach((elem) => {
+      elem.value = "";
+      elem.classList.remove('entered');
+    })
+
   }
 
   async componentDidMount() {
     let response = await fetch('http://localhost:3002/countries');
     let result = await response.json();
-    this.codes = result.map(elem => {
+    this.countries = result.map(elem => {
       return {
         code: elem.dial_code,
         name: elem.name,
         country_code: elem.country_code
       }
+    })
+    this.getCodes();
+    this.getCountries();
+  }
+
+  getCodes = () => {
+    let codes =  this.countries
+      .sort((a,b) => a.name - b.name)
+      .map((elem) => {
+        return  <option value={"+" + elem.code + " " + elem.name} />
+      })
+    this.setState({
+      codes
+    })
+  }
+
+  getCountries = () => {
+    let countries =  this.countries
+      .sort((a,b) => a.name - b.name)
+      .map((elem) => {
+     return  <option value={elem.name} />
+    })
+    this.setState({
+      countries
+    })
+  }
+
+  findingCode = (event) => {
+    const value = event.target.value;
+    this.enteredText();
+    this.setState(prevState => {
+      let filteredResult = prevState.filter((item) => {
+        return item.toLowerCase().includes(value.toLowerCase());
+      });
+      codes: filteredResult;
+    })
+  }
+
+  findingCountries = (event) => {
+    const value = event.target.value;
+    this.enteredText();
+    this.setState(prevState => {
+      let filteredResult = prevState.filter((item) => {
+        return item.toLowerCase().includes(value.toLowerCase());
+      });
+      countries: filteredResult;
     })
   }
 
@@ -116,31 +181,34 @@ class SignUp extends React.Component {
       <div className='SignUp'>
         <h1>Sign Up</h1>
         <form className='SignUp__form'
-              onSubmit={this.submit}>
+              onSubmit={this.submit}
+        >
           <div className='input name'>
            <Input type='name'
                   name="Name"
                   minLength="3"
                   maxLength="30"
-                  required={true}
                   onInput={this.enteredText}
            />
           </div>
           <div className='input phone'>
-            <Input type='tel'
-                   name="Code"
+            <input list="code-select"
                    id="code"
-                   required={false}
+                   type="tel"
                    pattern="^\+?\d{1,4}$"
-                   onInput={this.enteredText}
+                   onInput={this.findingCode}
             />
-            <select className='select code' >
-              <option>380</option>
-            </select>
+            <datalist id="code-select">
+              {this.state.codes}
+            </datalist>
+            <label className='label'
+                   htmlFor="code"
+                   id="codeLabel">
+              Code
+            </label>
             <Input type='tel'
                    name="Phone"
                    id="phone"
-                   required={false}
                    pattern="^[0-9]+$"
                    minLength="9" maxLength="9"
                    onInput={this.enteredText}
@@ -149,25 +217,27 @@ class SignUp extends React.Component {
           <div className='input email'>
             <Input type='email'
                    name="Email address"
-                   required={true}
                    onInput={this.enteredText}
             />
           </div>
           <div className='input country'>
-            <Input type='text'
+            <input list="country-select"
                    id="country"
-                   name="Select country"
-                   required={false}
-                   onInput={this.enteredText}
+                   type="text"
+                   onInput={this.findingCountries}
             />
-            <select className='select country' >
-              <option>Ukraine</option>
-            </select>
+            <datalist id="country-select">
+              <select>{this.state.countries}</select>
+            </datalist>
+            <label className='label'
+                              htmlFor="country"
+                              id="countryLabel">
+            Select country
+            </label>
           </div>
           <div className='input pass'>
             <Input type='password'
                    name="Password"
-                   required={true}
                    pattern='^[^s]+$'
                    minLength="5"
                    maxLength="128"
@@ -178,15 +248,12 @@ class SignUp extends React.Component {
             <Input type='password'
                    id="passConfirm"
                    name="Password confirmation"
-                   required={true}
-                   // minLength="8"
                    onInput={this.checkPass}
             />
           </div>
           <div className='check'>
             <Input type='checkbox'
                    id="checkbox"
-                   required={true}
             />
             <p className='label check' htmlFor='checkbox'>
               Yes, I'd like to recieve the very occasional email
@@ -200,7 +267,23 @@ class SignUp extends React.Component {
             account and join a company team
           </div>
       </form>
+      <div className="submitted"
+           style={{display :
+           this.state.submitted?
+             "flex"
+           : "none"}}>
+        <div className="submitted__img">
+          <img src="../styles/shape.svg"/>
+        </div>
+        <div className="submitted__text">
+          <h2>Great!</h2>
+          <p>your account has been successfully created.</p>
+        </div>
+        <div className="submitted__img">
+          <img src="../styles/arrow-dropdown-copy-11.svg"/>
+        </div>
       </div>
+    </div>
   )}
 };
 
