@@ -88,7 +88,7 @@ class SignUp extends React.Component {
       password,
       passwordConfirmation: passConfirm
     };
-    let response = await fetch('http://localhost:3002/register', {
+    let response = await fetch('0.0.0.0:3002/register', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json;charset=utf-8'
@@ -119,7 +119,7 @@ class SignUp extends React.Component {
   }
 
   async componentDidMount() {
-    let response = await fetch('http://localhost:3002/countries');
+    let response = await fetch('0.0.0.0:3002/countries');
     let result = await response.json();
     this.countries = result.map(elem => {
       return {
