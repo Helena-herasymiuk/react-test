@@ -94,6 +94,7 @@ class SignUp extends React.Component {
         country_code: elem.country_code
       }
     })
+
     let countries =  this.countries
       .sort((a,b) => a.name - b.name)
     this.setState({
@@ -282,15 +283,19 @@ class SignUp extends React.Component {
              "visible"
            : ""}`
       }>
-        <div className="submitted__img">
-          <img src="../styles/shape.svg"/>
+        <div className="submitted__img" id="done">
         </div>
         <div className="submitted__text">
           <h2>Great!</h2>
           <p>your account has been successfully created.</p>
         </div>
-        <div className="submitted__img">
-          <img src="../styles/arrow-dropdown-copy-11.svg"/>
+        <div className="submitted__img"
+             id="exit"
+             onClick={()=>{
+               this.setState({
+                 submitted: false
+               })
+             }}>
         </div>
       </div>
     </div>
