@@ -75,15 +75,22 @@ $text-color: #9b9b9b;
   margin: 0 0 30px;
   position: relative;
 
-  input,
-  input ~ datalist{
+  input {
     @extend %wh;
     @extend %bp;
     border: 0;
     outline:none;
     border-bottom: solid 2px #ebedf8;
+    position: relative;
 
-    & + .label {
+    & + datalist,
+    & + datalist > select{
+      position: absolute;
+      top: 0;
+      left: 0;
+
+    }
+    & ~ .label {
       @extend %label;
       position: absolute;
       left: 0;
@@ -91,13 +98,24 @@ $text-color: #9b9b9b;
       bottom: 5px;
       font-size: 15px;
     }
-
-    &:focus ~ .label,
-    &.entered ~ .label{
+    &:focus ~ .label {
       bottom: 24px;
       font-size: 12px;
     }
+  }
 
+  input:focus + .label.entered,
+  .entered + .label.entered,
+  .entered ~ .label{
+    bottom: 24px;
+    font-size: 12px;
+  }
+
+  option {
+    appearance: none;
+    width: 289px;
+    height: 46px;
+    background-color: #ffffff;
   }
 
   $red : #ed715c;
@@ -141,7 +159,6 @@ $text-color: #9b9b9b;
   #phoneLabel {
     left: 84px;
   }
-
 }
 
 select {
@@ -185,6 +202,15 @@ border: solid 1px #9398a2;
   }
 }
 
+@keyframes spin {
+  from {
+    transform: rotate(0deg)
+  }
+  to {
+    transform: rotate(360deg)
+  }
+}
+
 #submit {
   width: 347px;
   height: 42px;
@@ -207,6 +233,24 @@ border: solid 1px #9398a2;
   }
 }
 
+.submit {
+  position: relative;
+}
+
+.load {
+  position: absolute;
+  top: 30px;
+  left: 163px;
+  width: 20px;
+  height: 20px;
+  background-image: url("./group-10.svg");
+  background-repeat: no-repeat;
+  background-position: center;
+  animation-duration: 2s;
+  animation-name: spin;
+  animation-iteration-count: infinite;
+}
+
 .LogIn {
   @extend %label;
   display: block;
@@ -225,6 +269,18 @@ a {
   color: #0a7abf;
 }
 
+@keyframes slidein {
+  from {
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  to {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
 .submitted {
   width: 381px;
   height: 64px;
@@ -237,14 +293,16 @@ a {
   display: flex;
   align-items: stretch;
   padding: 12px;
-
   color: #419779;
+  visibility: hidden;
 
-  //& > p {
-  //  width: 311px;
-  //  font-weight: normal;
-  //  color: #419779;
-  //}
+  &.visible {
+    visibility: visible;
+    animation-duration: 2s, 2s;
+    animation-delay: 0s, 5s;
+    animation-name: slidein, slidein;
+    animation-direction: normal, reverse;
+  }
 }
 
 %text {

@@ -3,3 +3,5 @@ build
 .cache-loader
 .DS_Store
 .idea
+.eslintrc.js
+

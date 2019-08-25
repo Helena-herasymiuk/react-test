@@ -10,13 +10,14 @@ const Input = (props) => {
     maxLength,
     id = type,
     onInput,
-    list = ""
+    list = "",
+
   } = props;
 
   return (
     <React.Fragment>
       <input type={type} id={id}
-             onInput={onInput}
+             onChange={onInput}
              required
              pattern={pattern}
              minLength={minLength}
@@ -26,6 +27,7 @@ const Input = (props) => {
       <label className='label'
              htmlFor={id}
              id={id + 'Label'}
+             onClick={onInput}
       >
         {name}
       </label>
